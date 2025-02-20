@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:teamfresh
+    driver-class-name: org.h2.Driver
+    username: teamfresh
+    password: teamfresh
+  h2:
+    console:
+      enabled: true
