@@ -7,3 +7,15 @@ spring:
   h2:
     console:
       enabled: true
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+  docker:
+    compose:
+      enabled: true
+      start:
+        command: up
+      stop:
+        command: down
+      lifecycle-management: start_and_stop
