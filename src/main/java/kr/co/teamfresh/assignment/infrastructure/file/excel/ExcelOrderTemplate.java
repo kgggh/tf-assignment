@@ -7,7 +7,7 @@ import org.apache.poi.ss.usermodel.Row;
 
 @Getter
 @AllArgsConstructor
-public enum OrderExcelTemplate {
+public enum ExcelOrderTemplate {
     ORDERER_NAME("주문자명", 1, 0, ExcelColumnType.STRING),
     ORDERER_ADDRESS("주문자 주소", 1, 1, ExcelColumnType.STRING),
     PRODUCT_ID("상품 고유번호", 0, 3, ExcelColumnType.LONG),

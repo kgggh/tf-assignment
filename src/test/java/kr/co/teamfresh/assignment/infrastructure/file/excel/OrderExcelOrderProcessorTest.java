@@ -12,12 +12,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @ExtendWith(MockitoExtension.class)
-class OrderExcelFileProcessorTest {
-    private OrderExcelFileProcessor orderExcelFileProcessor;
+class OrderExcelOrderProcessorTest {
+    private ExcelOrderProcessor orderExcelFileProcessor;
 
     @BeforeEach
     void init() {
-        orderExcelFileProcessor = new OrderExcelFileProcessor();
+        orderExcelFileProcessor = new ExcelOrderProcessor();
     }
 
     @Test
@@ -30,27 +30,24 @@ class OrderExcelFileProcessorTest {
         var ordererAddress = "경기도 용인시 처인구 백옥대로 xxx-xx길";
 
         //when
-        var orderImportResults = orderExcelFileProcessor.process(inputStream);
+        var orderImportResult = orderExcelFileProcessor.process(inputStream);
 
-        System.out.println(orderImportResults);
 
         //then
-        var orderImportResult = orderImportResults.get(0);
-        assertThat(orderImportResults).hasSize(1);
         assertThat(orderImportResult.ordererName()).isEqualTo(ordererName);
-        assertThat(orderImportResult.ordererAddress()).isEqualTo(ordererAddress);
+        assertThat(orderImportResult.address()).isEqualTo(ordererAddress);
 
-        List<OrderImportResult.OrderProductInfoResult> orderProductInfoResults = orderImportResult.productInfoResults();
-        assertThat(orderProductInfoResults)
-            .extracting(OrderImportResult.OrderProductInfoResult::productId)
+        List<OrderImportResult.OrderProductInfo> orderProductInfos = orderImportResult.orderProducts();
+        assertThat(orderProductInfos)
+            .extracting(OrderImportResult.OrderProductInfo::productId)
             .containsExactly(1L, 2L, 3L);
 
-        assertThat(orderImportResult.productInfoResults())
-            .extracting(OrderImportResult.OrderProductInfoResult::productName)
+        assertThat(orderImportResult.orderProducts())
+            .extracting(OrderImportResult.OrderProductInfo::productName)
             .containsExactly("사과", "바나나", "파인애플");
 
-        assertThat(orderImportResult.productInfoResults())
-            .extracting(OrderImportResult.OrderProductInfoResult::quantity)
+        assertThat(orderImportResult.orderProducts())
+            .extracting(OrderImportResult.OrderProductInfo::quantity)
             .containsExactly(2, 4, 6);
     }
 
@@ -63,7 +60,7 @@ class OrderExcelFileProcessorTest {
         //when
         //then
         assertThatThrownBy(() -> orderExcelFileProcessor.process(inputStream))
-            .isInstanceOf(ExcelFileProcessingException.class);
+            .isInstanceOf(IllegalStateException.class);
     }
 
     @Test
@@ -75,7 +72,7 @@ class OrderExcelFileProcessorTest {
         //when
         //then
         assertThatThrownBy(() -> orderExcelFileProcessor.process(inputStream))
-            .isInstanceOf(ExcelFileProcessingException.class)
+            .isInstanceOf(IllegalStateException.class)
             .hasMessage("엑셀 파일의 데이터가 올바르지 않습니다.");
     }
 }

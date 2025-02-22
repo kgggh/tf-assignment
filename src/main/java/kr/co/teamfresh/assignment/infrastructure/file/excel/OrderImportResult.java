@@ -4,10 +4,10 @@ import java.util.List;
 
 public record OrderImportResult(
     String ordererName,
-    String ordererAddress,
-    List<OrderProductInfoResult> productInfoResults
+    String address,
+    List<OrderProductInfo> orderProducts
 ) {
-    public record OrderProductInfoResult(
+    public record OrderProductInfo(
         Long productId,
         String productName,
         Integer quantity
