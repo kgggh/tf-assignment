@@ -29,13 +29,21 @@ public class Product extends BaseEntity {
         return new Product(name, stock);
     }
 
-    public void decreaseStock(int quantity) {
-        if(quantity <= 0) {
-            throw new IllegalArgumentException("수량은 0보다 커야 합니다.");
+    public boolean hasStockFor(int quantity) {
+        if (quantity <= 0) {
+            return false;
         }
 
-        if(quantity > stock) {
-            throw new IllegalArgumentException("재고가 부족합니다.");
+        return stock >= quantity;
+    }
+
+    public void decreaseStock(int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException(this.id + "주문 수량은 1개 이상이어야 합니다.");
+        }
+
+        if (!hasStockFor(quantity)) {
+            throw new IllegalStateException("재고가 부족합니다. 상품 ID: " + this.id + ", 재고: " + this.stock);
         }
 
         this.stock -= quantity;

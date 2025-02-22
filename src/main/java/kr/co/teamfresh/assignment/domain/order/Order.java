@@ -21,9 +21,6 @@ public class Order extends BaseEntity {
     @Embedded
     private Orderer orderer;
 
-    @Embedded
-    private OrdererAddress ordererAddress;
-
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
@@ -31,15 +28,14 @@ public class Order extends BaseEntity {
     @OneToMany(mappedBy = "order", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<OrderProduct> orderProducts = new ArrayList<>();
 
-    protected Order(Orderer orderer, OrdererAddress ordererAddress, List<OrderProduct> orderProducts) {
+    protected Order(Orderer orderer, List<OrderProduct> orderProducts) {
         this.orderer = orderer;
         this.status = OrderStatus.PENDING;
-        this.ordererAddress = ordererAddress;
-        this.orderProducts = orderProducts;
+        orderProducts.forEach(this::addOrderProduct);
     }
 
-    public static Order create(Orderer orderer, OrdererAddress ordererAddress, List<OrderProduct> orderProducts) {
-        return new Order(orderer, ordererAddress, orderProducts);
+    public static Order create(Orderer orderer, List<OrderProduct> orderProducts) {
+        return new Order(orderer, orderProducts);
     }
 
     public void addOrderProduct(OrderProduct orderProduct) {

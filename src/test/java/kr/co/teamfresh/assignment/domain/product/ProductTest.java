@@ -52,7 +52,7 @@ class ProductTest {
         //then
         assertThatThrownBy(() -> product.decreaseStock(requestQuantity))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("수량은 0보다 커야 합니다.");
+                .hasMessageContaining("주문 수량은 1개 이상이어야 합니다.");
     }
 
     @Test
@@ -66,7 +66,7 @@ class ProductTest {
         //when
         //then
         assertThatThrownBy(() -> product.decreaseStock(requestQuantity))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("재고가 부족합니다.");
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("재고가 부족합니다.");
     }
 }
