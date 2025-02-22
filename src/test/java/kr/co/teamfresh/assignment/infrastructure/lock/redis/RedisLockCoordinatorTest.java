@@ -39,42 +39,42 @@ class RedisLockCoordinatorTest {
     @Test
     void 락을_정상적으로_획득한다() throws InterruptedException {
         //given
-        when(rLock.tryLock(5, 10, TimeUnit.SECONDS)).thenReturn(true);
+        when(rLock.tryLock(10, 30, TimeUnit.SECONDS)).thenReturn(true);
 
         //when
         //then
         assertThatCode(() -> redisLockCoordinator.lock(LOCK_KEY))
             .doesNotThrowAnyException();
 
-        verify(rLock, times(1)).tryLock(5, 10, TimeUnit.SECONDS);
+        verify(rLock, times(1)).tryLock(10, 30, TimeUnit.SECONDS);
     }
 
     @Test
     void 다른_쓰레드가_소유하고_있을시_락_획득에_실패한다() throws InterruptedException {
         //given
-        when(rLock.tryLock(5, 10, TimeUnit.SECONDS)).thenReturn(false);
+        when(rLock.tryLock(10, 30, TimeUnit.SECONDS)).thenReturn(false);
 
         //when
         //then
         assertThatThrownBy(() -> redisLockCoordinator.lock(LOCK_KEY))
-            .isInstanceOf(RedisLockAcquisitionException.class)
+            .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("락 획득 실패 - key: " + LOCK_KEY);
 
-        verify(rLock, times(1)).tryLock(5, 10, TimeUnit.SECONDS);
+        verify(rLock, times(1)).tryLock(10, 30, TimeUnit.SECONDS);
     }
 
     @Test
     void 락_획득_중_인터럽트가_발생하면_예외를_발생시킨다() throws InterruptedException {
         //given
-        when(rLock.tryLock(5, 10, TimeUnit.SECONDS)).thenThrow(new InterruptedException());
+        when(rLock.tryLock(10, 30, TimeUnit.SECONDS)).thenThrow(new InterruptedException());
 
         //when
         //then
         assertThatThrownBy(() -> redisLockCoordinator.lock(LOCK_KEY))
-            .isInstanceOf(RedisLockAcquisitionException.class)
+            .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("인터럽트 발생");
 
-        verify(rLock, times(1)).tryLock(5, 10, TimeUnit.SECONDS);
+        verify(rLock, times(1)).tryLock(10, 30, TimeUnit.SECONDS);
         
     }
 
@@ -105,12 +105,12 @@ class RedisLockCoordinatorTest {
     @Test
     void 멀티스레드_환경에서_하나의_쓰레드만_락을_획득한다() throws InterruptedException {
         //given
-        when(rLock.tryLock(5, 10, TimeUnit.SECONDS)).thenReturn(true, false);
+        when(rLock.tryLock(10, 30, TimeUnit.SECONDS)).thenReturn(true, false);
 
         var thread1 = new Thread(() -> redisLockCoordinator.lock(LOCK_KEY));
         var thread2 = new Thread(() -> {
             assertThatThrownBy(() -> redisLockCoordinator.lock(LOCK_KEY))
-                .isInstanceOf(RedisLockAcquisitionException.class)
+                .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("락 획득 실패 - key: " + LOCK_KEY);
         });
 
@@ -121,6 +121,6 @@ class RedisLockCoordinatorTest {
         thread2.join();
 
         //then
-        verify(rLock, times(2)).tryLock(5, 10, TimeUnit.SECONDS);
+        verify(rLock, times(2)).tryLock(10, 30, TimeUnit.SECONDS);
     }
 }
