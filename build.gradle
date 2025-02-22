@@ -35,6 +35,7 @@ dependencies {
     implementation 'org.apache.poi:poi-ooxml:5.4.0'
     implementation 'org.redisson:redisson-spring-boot-starter:3.44.0'
     testAndDevelopmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
 }
 
 tasks.named('test') {

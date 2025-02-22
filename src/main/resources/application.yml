@@ -19,3 +19,5 @@ spring:
       stop:
         command: down
       lifecycle-management: start_and_stop
+  jpa:
+    defer-datasource-initialization: true
