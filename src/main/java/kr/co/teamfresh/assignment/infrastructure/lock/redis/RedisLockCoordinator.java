@@ -16,8 +16,8 @@ public class RedisLockCoordinator implements LockCoordinator {
     private final RedissonClient redissonClient;
 
     private static final String LOCK_PREFIX = "lock:";
-    private static final int DEFAULT_LOCK_WAIT_TIME = 5;
-    private static final int DEFAULT_LOCK_HOLD_TIME = 10;
+    private static final int DEFAULT_LOCK_WAIT_TIME = 10;
+    private static final int DEFAULT_LOCK_HOLD_TIME = 30;
 
     @Override
     public void lock(String key) {
@@ -26,13 +26,13 @@ public class RedisLockCoordinator implements LockCoordinator {
         try {
             if(!lock.tryLock(DEFAULT_LOCK_WAIT_TIME, DEFAULT_LOCK_HOLD_TIME, TimeUnit.SECONDS)) {
                 log.warn("락 획득 실패 - key: {}", key);
-                throw new RedisLockAcquisitionException("락 획득 실패 - key: " + key);
+                throw new IllegalStateException("락 획득 실패 - key: " + key);
             }
 
             log.info("락 획득 완료 - key:{}", key);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new RedisLockAcquisitionException("락 획득 중 인터럽트 발생 " + key, e);
+            throw new IllegalStateException("락 획득 중 인터럽트 발생 " + key, e);
         }
     }
 
