@@ -125,6 +125,7 @@ public class OrderServiceImpl implements OrderService {
                 validateAndDecreaseStock(product, orderProductInfo.quantity(), requestProductId);
                 orderProducts.add(OrderProduct.of(product.getId(), orderProductInfo.quantity()));
             }
+
             return saveOrderTransaction(orderProducts, importResult.ordererName(), importResult.address());
         } finally {
             lockCoordinator.multipleUnlock(productLockKeys);
