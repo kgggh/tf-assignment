@@ -19,6 +19,10 @@ public class Order extends BaseEntity {
     private Long id;
 
     @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "name", column = @Column(name = "customer_name")),
+        @AttributeOverride(name = "address", column = @Column(name = "customer_address"))
+    })
     private Orderer orderer;
 
     @Column(nullable = false)
