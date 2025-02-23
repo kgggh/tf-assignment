@@ -81,8 +81,8 @@ class OrderServiceImplTest {
         //then
         assertThat(orderId).isEqualTo(1);
         verify(orderRepository, times(1)).save(any());
-        verify(lockCoordinator, times(1)).lock(any());
-        verify(lockCoordinator, times(1)).unlock(any());
+        verify(lockCoordinator, times(1)).multipleLock(any());
+        verify(lockCoordinator, times(1)).multipleUnlock(any());
     }
 
     @Test
@@ -196,6 +196,5 @@ class OrderServiceImplTest {
 
         verify(orderRepository, times(0)).save(any()); // 주문이 저장되지 않아야 함
     }
-
 }
 

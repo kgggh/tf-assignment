@@ -44,26 +44,28 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private Long processOrderFromRequest(List<Long> productIds, OrderCreateRequest request) {
-        Map<Long, Product> productMap = getProductMapByIds(productIds);
+        List<String> productLockKeys = productIds.stream().map(id -> PRODUCT_LOCK_KEY_PREFIX + id).toList();
+
         List<OrderProduct> orderProducts = new ArrayList<>();
 
-        for (OrderCreateRequest.OrderProductInfo orderProductInfo : request.orderProducts()) {
-            Long productId = orderProductInfo.productId();
-            String productLockKey = PRODUCT_LOCK_KEY_PREFIX + productId;
+        try {
+            lockCoordinator.multipleLock(productLockKeys);
 
-            lockCoordinator.lock(productLockKey);
+            Map<Long, Product> productMap = getProductMapByIds(productIds);
 
-            try {
-                Product product = productMap.get(productId);
-                validateAndDecreaseStock(product, orderProductInfo.quantity(), productId);
+            for (OrderCreateRequest.OrderProductInfo orderProductInfo : request.orderProducts()) {
+                Long requestProductId = orderProductInfo.productId();
 
-                orderProducts.add(OrderProduct.of(productId, orderProductInfo.quantity()));
-            } finally {
-                lockCoordinator.unlock(productLockKey);
+                Product product = productMap.get(requestProductId);
+                validateAndDecreaseStock(product, orderProductInfo.quantity(), requestProductId);
+
+                orderProducts.add(OrderProduct.of(product.getId(), orderProductInfo.quantity()));
             }
-        }
 
-        return saveOrderTransaction(orderProducts, request.ordererName(), request.address());
+            return saveOrderTransaction(orderProducts, request.ordererName(), request.address());
+        } finally {
+            lockCoordinator.multipleUnlock(productLockKeys);
+        }
     }
 
     private Map<Long, Product> getProductMapByIds(List<Long> productIds) {
@@ -88,13 +90,13 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.save(createdOrder).getId();
     }
 
-    private void validateAndDecreaseStock(Product product, int quantity, Long productId) {
+    private void validateAndDecreaseStock(Product product, int quantity, Long requestProductId) {
         if (product == null) {
-            throw new IllegalArgumentException("해당 상품이 존재하지 않습니다, 상품 ID: " + productId);
+            throw new IllegalArgumentException("해당 상품이 존재하지 않습니다, 상품 ID: " + requestProductId);
         }
 
         if (!product.hasStockFor(quantity)) {
-            throw new IllegalArgumentException("재고가 부족합니다. 상품 ID: " + productId + ", 현재 재고: " + product.getStock());
+            throw new IllegalArgumentException("재고가 부족합니다. 상품 ID: " + product.getId() + ", 현재 재고: " + product.getStock());
         }
 
         product.decreaseStock(quantity);
@@ -107,23 +109,25 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private Long processOrderFromFile(List<Long> productIds, OrderImportResult importResult) {
-        Map<Long, Product> productMap = getProductMapByIds(productIds);
+        List<String> productLockKeys = productIds.stream().map(id -> PRODUCT_LOCK_KEY_PREFIX + id).toList();
+
         List<OrderProduct> orderProducts = new ArrayList<>();
 
-        for (OrderImportResult.OrderProductInfo orderProductInfo : importResult.orderProducts()) {
-            Long productId = orderProductInfo.productId();
-            String productLockKey = PRODUCT_LOCK_KEY_PREFIX + productId;
+        try {
+            lockCoordinator.multipleLock(productLockKeys);
 
-            lockCoordinator.lock(productLockKey);
-            try {
-                Product product = productMap.get(productId);
-                validateAndDecreaseStock(product, orderProductInfo.quantity(), productId);
-                orderProducts.add(OrderProduct.of(productId, orderProductInfo.quantity()));
-            } finally {
-                lockCoordinator.unlock(productLockKey);
+            Map<Long, Product> productMap = getProductMapByIds(productIds);
+
+            for (OrderImportResult.OrderProductInfo orderProductInfo : importResult.orderProducts()) {
+                Long requestProductId = orderProductInfo.productId();
+                Product product = productMap.get(requestProductId);
+
+                validateAndDecreaseStock(product, orderProductInfo.quantity(), requestProductId);
+                orderProducts.add(OrderProduct.of(product.getId(), orderProductInfo.quantity()));
             }
+            return saveOrderTransaction(orderProducts, importResult.ordererName(), importResult.address());
+        } finally {
+            lockCoordinator.multipleUnlock(productLockKeys);
         }
-
-        return saveOrderTransaction(orderProducts, importResult.ordererName(), importResult.address());
     }
 }

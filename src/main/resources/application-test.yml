@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:teamfresh
+    driver-class-name: org.h2.Driver
+    username: test
+    password: test
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6222
+  docker:
+    compose:
+      enabled: true
+      start:
+        command: up
+      stop:
+        command: down
+      lifecycle-management: start_and_stop
+      skip:
+        in-tests: false
+      file: docker-compose-test.yml
+  sql:
+    init:
+      mode: never
